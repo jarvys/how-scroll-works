@@ -1,0 +1,58 @@
+.c1-fixedPane {
+  background-color: #fff;
+}
+
+.c1-row-a {
+  height: 48px;
+  background-color: #93bfcf;
+  display: flex;
+  align-items: center;
+  padding: 0px 16px;
+}
+
+.c1-row-b {
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  border-bottom: 1px solid #ebebeb;
+}
+
+.c1-rect {
+  height: 24px;
+  width: 64px;
+  margin-left: 8px;
+  background-color: #bdcdd6;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.c1-scroll-container {
+  background-color: #fff;
+  overflow-y: auto;
+}
+
+.c1-group {
+  border-bottom: 1px solid #ebebeb;
+}
+
+.c1-group-inner {
+  margin: 0 16px 16px;
+  background-color: #f1f1f1;
+  border-radius: 6px;
+}
+
+.c1-stickyHeader {
+  font-weight: 500;
+  padding: 0 16px;
+  position: sticky;
+  display: flex;
+  align-items: center;
+  top: 0;
+  height: 32px;
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+.c1-footer {
+  height: 70px;
+}
