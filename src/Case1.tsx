@@ -144,6 +144,7 @@ export default function Case1() {
       if (Date.now() - latestTime >= waitTime) {
         latestTime = Date.now();
         debug("updateStickyGroup, throttle");
+        performance.mark("updateStickyGroup-throttle");
         updateStickyGroup();
       }
       if (timer) {
@@ -151,6 +152,7 @@ export default function Case1() {
       }
       timer = setTimeout(() => {
         debug("updateStickyGroup, debounce");
+        performance.mark("updateStickyGroup-debounce");
         updateStickyGroup();
       }, 300);
     }
