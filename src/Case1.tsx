@@ -11,9 +11,18 @@ function GroupView({
   group: { key: number; showRowA: boolean; height: number };
 }) {
   return (
-    <div className="c1-group">
-      <div className="c1-stickyHeader">group #{group.key}</div>
-      <div className="c1-group-inner" style={{ height: group.height }} />
+    <div className="c1-group" id={`c1-group-view-${group.key}`}>
+      <div
+        className="c1-stickyHeader"
+        id={`c1-group-view-sticky-header-${group.key}`}
+      >
+        group #{group.key}
+      </div>
+      <div
+        className="c1-group-inner"
+        id={`c1-group-view-inner-${group.key}`}
+        style={{ height: group.height }}
+      />
     </div>
   );
 }
@@ -119,9 +128,9 @@ export default function Case1() {
           break;
         }
       }
-      performance.mark("change-sticky-group-" + foundGroupKey);
       setStickGroupKey((prev) => {
         if (prev !== foundGroupKey) {
+          performance.mark("change-sticky-group-" + foundGroupKey);
           debug("sticky group key changed", foundGroupKey);
           return foundGroupKey;
         }
@@ -130,8 +139,8 @@ export default function Case1() {
     }
 
     function onScroll() {
-      debug("onScroll");
-      performance.mark("onScroll");
+      debug("onScroll", scrollContainerRef.current?.scrollTop);
+      performance.mark(`onScroll-${scrollContainerRef.current?.scrollTop}`);
       if (Date.now() - latestTime >= waitTime) {
         latestTime = Date.now();
         debug("updateStickyGroup, throttle");
@@ -163,11 +172,20 @@ export default function Case1() {
   debug("app render", ++counterRef.current);
   performance.mark("app-render-" + stickGroupKey);
 
-  // 这种实现会导致布局抖动，并且进入了一个死循环
-  // const s = useRef<LayoutSolution>(new LayoutSolutionFlex(667));
-  // 这种实现会导致布局抖动，虽然不会进入死循环，但是在用户滑动过程中，可能会跟着用户操作持续抖动
-  const s = useRef<LayoutSolution>(new LayoutSolutionDynamic(667));
-  // const s = useRef<LayoutSolution>(new LayoutSolutionStable(667));
+  const s = useMemo(() => {
+    const search = window.location.hash.split("?")[1];
+    const searchParams = new URLSearchParams(search);
+    if (searchParams.get("s") === "flex") {
+      // 这种实现会导致布局抖动，并且进入了一个死循环
+      return new LayoutSolutionFlex(667);
+    } else if (searchParams.get("s") === "dynamic") {
+      // 这种实现会导致布局抖动，虽然不会进入死循环，但是在用户滑动过程中，可能会跟着用户操作持续抖动
+      return new LayoutSolutionDynamic(667);
+    } else {
+      // 这种实现不会出现抖动和循环，但是 scroll container 的高度并不是严丝合缝的。不过这个高度误差问题实际页面里有其他补救措施，能接受。
+      return new LayoutSolutionStable(667);
+    }
+  }, []);
   const rowAHeight = 48;
   const rowBHeight = 41;
   const solutionOptions = {
@@ -178,7 +196,7 @@ export default function Case1() {
   const [visible, setVisible] = useState(true);
 
   return (
-    <div className="container" style={s.current.getContainerStyle()}>
+    <div className="container" style={s.getContainerStyle()}>
       <div className="c1-fixedPane" ref={ref}>
         {rowAVisible ? (
           <div className="c1-row-a">current: group #{stickGroupKey}</div>
@@ -192,11 +210,15 @@ export default function Case1() {
       <div
         className="c1-scroll-container"
         ref={scrollContainerRef}
-        style={s.current.getScrollStyle(solutionOptions)}
+        style={s.getScrollStyle(solutionOptions)}
       >
         {groups.map((group) => {
           return (
-            <div key={group.key} ref={(el) => onGroupNodeUpdate(group.key, el)}>
+            <div
+              key={group.key}
+              id={`c1-group-view-wrap-${group.key}`}
+              ref={(el) => onGroupNodeUpdate(group.key, el)}
+            >
               <GroupView group={group} />
             </div>
           );
