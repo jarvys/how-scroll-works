@@ -20,22 +20,24 @@ const loadData = (() => {
     return () => ++_id;
   })();
 
-  let cachedPage1 = 0;
-  const data1: { key: number }[] = [];
-  for (let i = 0; i < 100; i++) {
-    data1.push({ key: genId() });
-  }
-  let cachedPage2 = 0;
-  let total2 = 4;
-  const data2: { key: number }[] = [];
-  for (let i = 0; i < total2; i++) {
-    data2.push({ key: genId() });
-  }
-
   function delay(ms: number) {
     return new Promise((resolve) => {
       setTimeout(resolve, ms);
     });
+  }
+
+  const TOTAL1 = 100;
+  const TOTAL2 = 4;
+  let cachedPage1 = 0;
+  let cachedPage2 = 0;
+
+  const data1: { key: number }[] = [];
+  const data2: { key: number }[] = [];
+  for (let i = 0; i < TOTAL1; i++) {
+    data1.push({ key: genId() });
+  }
+  for (let i = 0; i < TOTAL2; i++) {
+    data2.push({ key: genId() });
   }
 
   return async function (
@@ -70,12 +72,18 @@ const loadData = (() => {
 
 interface LayoutSolution {
   getScrollContainer(): EventTarget;
+  getScrollTop(): number;
   getRootStyle(): CSSProperties;
   renderSkeleton(): React.ReactNode;
 }
 
+// 使用 viewport 作为 scroll container
 class LayoutSolutionByViewPort implements LayoutSolution {
   constructor(private skeletonCards: number) {}
+
+  getScrollTop() {
+    return window.scrollY;
+  }
 
   getScrollContainer() {
     return window;
@@ -92,8 +100,13 @@ class LayoutSolutionByViewPort implements LayoutSolution {
   }
 }
 
+// 使用 #c2-root 作为 scroll container
 class LayoutSolutionByRoot implements LayoutSolution {
   constructor(private skeletonCards: number) {}
+
+  getScrollTop(): number {
+    return this.getScrollContainer().scrollTop;
+  }
 
   getScrollContainer() {
     return document.getElementById("c2-root")!;
@@ -358,8 +371,8 @@ export default function Case2() {
 
   useEffect(() => {
     function listener() {
-      debug("scroll", window.scrollY);
-      window.performance.mark(`c2-scroll-${window.scrollY}`);
+      debug("scroll", s.getScrollTop());
+      window.performance.mark(`c2-scroll-${s.getScrollTop()}`);
     }
 
     s.getScrollContainer().addEventListener("scroll", listener);
