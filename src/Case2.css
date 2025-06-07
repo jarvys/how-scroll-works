@@ -39,6 +39,12 @@
   margin-bottom: 8px;
 }
 
+.c2-card .c2-card-info .c2-card-info-item.c2-skeleton {
+  background: #f5f5f5;
+  border-radius: 4px;
+  height: 20px;
+}
+
 .c2-sticky-tab {
   position: sticky;
   top: 44px;

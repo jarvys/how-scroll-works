@@ -14,52 +14,103 @@ import img from "./img.webp";
 
 const debug = debugFn("app:case2");
 
-const genId = (() => {
-  let _id = 0;
-  return () => ++_id;
+const loadData = (() => {
+  const genId = (() => {
+    let _id = 0;
+    return () => ++_id;
+  })();
+
+  let cachedPage1 = 0;
+  const data1: { key: number }[] = [];
+  for (let i = 0; i < 100; i++) {
+    data1.push({ key: genId() });
+  }
+  let cachedPage2 = 0;
+  let total2 = 4;
+  const data2: { key: number }[] = [];
+  for (let i = 0; i < total2; i++) {
+    data2.push({ key: genId() });
+  }
+
+  function delay(ms: number) {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
+  }
+
+  return async function (
+    bizType: 1 | 2,
+    page: number
+  ): Promise<{ key: number }[]> {
+    const cachedPage = bizType === 1 ? cachedPage1 : cachedPage2;
+    const data = bizType === 1 ? data1 : data2;
+    if (cachedPage >= page) {
+      return delay(100).then(() => data.slice((page - 1) * 7, page * 7));
+    }
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        if ((page - 1) * 7 >= data.length) {
+          resolve([]);
+          return;
+        }
+        const result = [];
+        for (let i = 0; i < 7; i++) {
+          result.push({ key: (page - 1) * 7 + i });
+        }
+        if (bizType === 1) {
+          cachedPage1 = page;
+        } else if (bizType === 2) {
+          cachedPage2 = page;
+        }
+        resolve(data.slice((page - 1) * 7, page * 7));
+      }, 500);
+    });
+  };
 })();
 
-let cachedPage1 = 0;
-const data1: { key: number }[] = [];
-for (let i = 0; i < 100; i++) {
-  data1.push({ key: genId() });
-}
-let cachedPage2 = 0;
-const data2: { key: number }[] = [];
-for (let i = 0; i < 4; i++) {
-  data2.push({ key: genId() });
+interface LayoutSolution {
+  getScrollContainer(): EventTarget;
+  getRootStyle(): CSSProperties;
+  renderSkeleton(): React.ReactNode;
 }
 
-function delay(ms: number) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
+class LayoutSolutionByViewPort implements LayoutSolution {
+  constructor(private skeletonCards: number) {}
 
-function loadData(bizType: 1 | 2, page: number): Promise<{ key: number }[]> {
-  const cachedPage = bizType === 1 ? cachedPage1 : cachedPage2;
-  const data = bizType === 1 ? data1 : data2;
-  if (cachedPage >= page) {
-    return delay(100).then(() => data.slice((page - 1) * 7, page * 7));
+  getScrollContainer() {
+    return window;
   }
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      if ((page - 1) * 7 >= data.length) {
-        resolve([]);
-        return;
-      }
-      const result = [];
-      for (let i = 0; i < 7; i++) {
-        result.push({ key: (page - 1) * 7 + i });
-      }
-      if (bizType === 1) {
-        cachedPage1 = page;
-      } else if (bizType === 2) {
-        cachedPage2 = page;
-      }
-      resolve(data.slice((page - 1) * 7, page * 7));
-    }, 500);
-  });
+
+  getRootStyle() {
+    return {};
+  }
+
+  renderSkeleton(): React.ReactNode {
+    return Array.from({ length: this.skeletonCards }).map((_, index) => (
+      <Card key={`skeleton-${index + 1}`} item={{ key: "" }} isSkeleton />
+    ));
+  }
+}
+
+class LayoutSolutionByRoot implements LayoutSolution {
+  constructor(private skeletonCards: number) {}
+
+  getScrollContainer() {
+    return document.getElementById("c2-root")!;
+  }
+
+  getRootStyle() {
+    return {
+      height: "100vh",
+      overflow: "auto",
+    };
+  }
+
+  renderSkeleton(): React.ReactNode {
+    return Array.from({ length: this.skeletonCards }).map((_, index) => (
+      <Card key={`skeleton-${index + 1}`} item={{ key: "" }} isSkeleton />
+    ));
+  }
 }
 
 function Card({
@@ -71,56 +122,30 @@ function Card({
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
-  // useEffect(() => {
-  //   const rect = ref.current?.getBoundingClientRect();
-  //   debug(`Card ${item.key} mounted`, rect);
-  // }, []);
-
-  let total = 0;
-  for (let i = 0; i < 1000000; i++) {
-    total += i; // Simulate some heavy computation
-  }
-
   return (
-    <div className="c2-card" ref={ref} data-key={item.key}>
-      <div className="c2-card-inner">
-        <div className="c2-card-img-wrap">
+    <div className="c2-card" ref={ref} id={`c2-card-${item.key}`}>
+      <div className="c2-card-inner" id={`c2-card-inner-${item.key}`}>
+        <div className="c2-card-img-wrap" id={`c2-card-img-wrap-${item.key}`}>
           {isSkeleton ? (
             <div className="c2-card-img-placeholder"></div>
           ) : (
             <img src={img} alt="" />
           )}
         </div>
-        <div className="c2-card-info">
+        <div className="c2-card-info" id={`c2-card-info-${item.key}`}>
           {isSkeleton ? (
-            <div
-              className="c2-card-info-item"
-              style={{ background: "#f5f5f5", height: 20, borderRadius: 4 }}
-            />
+            <div className="c2-card-info-item c2-skeleton" />
           ) : (
             <div className="c2-card-info-item">#{item.key}</div>
           )}
+          <div className="c2-card-info-item c2-skeleton" />
           <div
-            className="c2-card-info-item"
-            style={{ background: "#f5f5f5", height: 20, borderRadius: 4 }}
+            className="c2-card-info-item c2-skeleton"
+            style={{ width: "50%" }}
           />
           <div
-            className="c2-card-info-item"
-            style={{
-              background: "#f5f5f5",
-              height: 18,
-              borderRadius: 4,
-              width: "50%",
-            }}
-          />
-          <div
-            className="c2-card-info-item"
-            style={{
-              background: "#f5f5f5",
-              height: 18,
-              borderRadius: 4,
-              width: "50%",
-            }}
+            className="c2-card-info-item c2-skeleton"
+            style={{ width: "50%" }}
           />
         </div>
       </div>
@@ -245,7 +270,7 @@ function VisibilityChange({
   }, []);
 
   return (
-    <div ref={ref} style={style}>
+    <div ref={ref} style={style} className="c2-visibility-change">
       {children}
     </div>
   );
@@ -288,8 +313,6 @@ export default function Case2() {
       });
   }, [hasMore, loadingMore, page, tab]);
 
-  // debug("render", dataSource);
-
   useEffect(() => {
     const originOverflowY = document.body.style.overflowY;
     const originBackgroundColor = document.body.style.backgroundColor;
@@ -318,10 +341,37 @@ export default function Case2() {
   });
   const finalDataSource = useInserted(dataSource);
 
-  window.performance.mark('c2-render');
+  const s = useMemo(() => {
+    const search = window.location.hash.split("?")[1];
+    const searchParams = new URLSearchParams(search);
+    const skeletonCards = searchParams.get("skeleton")
+      ? +(searchParams.get("skeleton") as string)
+      : 8;
+    if (searchParams.get("s") === "root") {
+      return new LayoutSolutionByRoot(skeletonCards);
+    } else if (searchParams.get("s") === "viewport") {
+      return new LayoutSolutionByViewPort(skeletonCards);
+    } else {
+      return new LayoutSolutionByViewPort(skeletonCards);
+    }
+  }, []);
+
+  useEffect(() => {
+    function listener() {
+      debug("scroll", window.scrollY);
+      window.performance.mark(`c2-scroll-${window.scrollY}`);
+    }
+
+    s.getScrollContainer().addEventListener("scroll", listener);
+    return () => {
+      s.getScrollContainer().removeEventListener("scroll", listener);
+    };
+  }, [s]);
+
+  window.performance.mark(`c2-render-t${tab}-${finalDataSource.length}`);
 
   return (
-    <div>
+    <div id="c2-root" style={s.getRootStyle()}>
       <div className="c2-sticky-header" style={headerStyle}>
         sticky header
       </div>
@@ -378,16 +428,7 @@ export default function Case2() {
         key={`tab-${tab}-page-${page}`}
       >
         {!finalDataSource?.length && hasMore ? (
-          <div>
-            <Card key="skeleton-1" item={{ key: "" }} isSkeleton />
-            <Card key="skeleton-2" item={{ key: "" }} isSkeleton />
-            <Card key="skeleton-3" item={{ key: "" }} isSkeleton />
-            <Card key="skeleton-4" item={{ key: "" }} isSkeleton />
-            <Card key="skeleton-5" item={{ key: "" }} isSkeleton />
-            <Card key="skeleton-6" item={{ key: "" }} isSkeleton />
-            <Card key="skeleton-7" item={{ key: "" }} isSkeleton />
-            <Card key="skeleton-8" item={{ key: "" }} isSkeleton />
-          </div>
+          <div id="c2-skeleton-wrap">{s.renderSkeleton()}</div>
         ) : (
           <div className="c2-footer">
             {hasMore ? "正在加载更多数据..." : "没有更多了"}
