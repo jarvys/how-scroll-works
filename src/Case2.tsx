@@ -142,7 +142,9 @@ function Card({
           {isSkeleton ? (
             <div className="c2-card-img-placeholder"></div>
           ) : (
-            <div className="c2-card-img-placeholder">#{item.key}</div>
+            <div className="c2-card-img-placeholder c2-placeholder">
+              #{item.key}
+            </div>
           )}
         </div>
         <div className="c2-card-info" id={`c2-card-info-${item.key}`}>
@@ -350,9 +352,6 @@ export default function Case2() {
     setPage(1);
   }
 
-  const [headerStyle, setHeaderStyle] = useState({
-    backgroundColor: "transparent",
-  });
   const finalDataSource = useInserted(dataSource);
 
   const [searchParams] = useSearchParams();
@@ -390,25 +389,17 @@ export default function Case2() {
 
   return (
     <div id="c2-root" style={s.getRootStyle()}>
-      <div className="c2-sticky-header" style={headerStyle}>
-        sticky header
-      </div>
+      <div className="c2-sticky-header">sticky header</div>
 
       <div className="c2-header-content">
-        <VisibilityChange
-          onAppear={() => {
-            setHeaderStyle({ backgroundColor: "transparent" });
-          }}
-          onDisappear={() => {
-            setHeaderStyle({ backgroundColor: "#fff" });
-          }}
-        >
-          <div className="c2-header-content-intersection" />
-        </VisibilityChange>
-        <div className="c2-header-card" id="c2-header-1" />
+        <div className="c2-header-card c2-placeholder" id="c2-header-1">
+          header card #1
+        </div>
       </div>
       <div className="c2-header-content">
-        <div className="c2-header-card" id="c2-header-2" />
+        <div className="c2-header-card c2-placeholder" id="c2-header-2">
+          header card #2
+        </div>
       </div>
 
       <div className="c2-sticky-tab">
@@ -418,7 +409,7 @@ export default function Case2() {
             className={tab === t ? "c2-tab-item c2-active" : "c2-tab-item"}
             onClick={() => handleChangeTab(t as 1 | 2)}
           >
-            tab-{t}
+            sticky-tab-{t}
           </div>
         ))}
       </div>
