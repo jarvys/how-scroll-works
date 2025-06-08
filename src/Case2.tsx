@@ -10,7 +10,7 @@ import {
   useState,
 } from "react";
 
-import img from "./img.webp";
+import { useSearchParams } from "react-router";
 
 const debug = debugFn("app:case2");
 
@@ -27,7 +27,7 @@ const loadData = (() => {
   }
 
   const TOTAL1 = 100;
-  const TOTAL2 = 4;
+  const TOTAL2 = 30;
   let cachedPage1 = 0;
   let cachedPage2 = 0;
 
@@ -142,7 +142,7 @@ function Card({
           {isSkeleton ? (
             <div className="c2-card-img-placeholder"></div>
           ) : (
-            <img src={img} alt="" />
+            <div className="c2-card-img-placeholder">#{item.key}</div>
           )}
         </div>
         <div className="c2-card-info" id={`c2-card-info-${item.key}`}>
@@ -341,6 +341,7 @@ export default function Case2() {
     if (tab === nextTab) {
       return;
     }
+    debug("change tab", nextTab);
     window.performance.mark(`c2-change-tag-${nextTab}`);
     setTab(nextTab);
     setDataSource([]);
@@ -353,6 +354,8 @@ export default function Case2() {
     backgroundColor: "transparent",
   });
   const finalDataSource = useInserted(dataSource);
+
+  const [searchParams] = useSearchParams();
 
   const s = useMemo(() => {
     const search = window.location.hash.split("?")[1];
@@ -383,6 +386,8 @@ export default function Case2() {
 
   window.performance.mark(`c2-render-t${tab}-${finalDataSource.length}`);
 
+  const keepFooter = searchParams.get("keepFooter") === "true";
+
   return (
     <div id="c2-root" style={s.getRootStyle()}>
       <div className="c2-sticky-header" style={headerStyle}>
@@ -400,10 +405,10 @@ export default function Case2() {
         >
           <div className="c2-header-content-intersection" />
         </VisibilityChange>
-        <div className="c2-floor" />
+        <div className="c2-header-card" id="c2-header-1" />
       </div>
       <div className="c2-header-content">
-        <div className="c2-floor" />
+        <div className="c2-header-card" id="c2-header-2" />
       </div>
 
       <div className="c2-sticky-tab">
@@ -443,11 +448,19 @@ export default function Case2() {
         {!finalDataSource?.length && hasMore ? (
           <div id="c2-skeleton-wrap">{s.renderSkeleton()}</div>
         ) : (
-          <div className="c2-footer">
+          <div
+            className="c2-footer"
+            style={{ display: keepFooter ? "none" : undefined }}
+          >
             {hasMore ? "正在加载更多数据..." : "没有更多了"}
           </div>
         )}
       </VisibilityChange>
+      {keepFooter ? (
+        <div className="c2-footer">
+          {hasMore ? "正在加载更多数据..." : "没有更多了"}
+        </div>
+      ) : null}
     </div>
   );
 }
