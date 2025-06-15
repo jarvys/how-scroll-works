@@ -1,6 +1,6 @@
 import "./Case3.css";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 function Card({ label }: { label: string }) {
   return (
@@ -15,6 +15,32 @@ function Card({ label }: { label: string }) {
 export default function Case3() {
   const items = Array.from({ length: 100 });
   const [insertedList, setInsertedList] = useState<number[]>([]);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function listener() {
+      window.performance.mark("c3-wheel");
+      console.log("c3-wheel");
+    }
+    window.addEventListener("wheel", listener);
+    return () => {
+      window.removeEventListener("wheel", listener);
+    };
+  }, []);
+
+  useEffect(() => {
+    function listener() {
+      window.performance.mark("c3-scroll");
+      console.log("c3-scroll");
+    }
+
+    scrollContainerRef.current?.addEventListener("scroll", listener);
+    return () => {
+      scrollContainerRef.current?.removeEventListener("scroll", listener);
+    };
+  }, []);
+
+  window.performance.mark("c3-render");
 
   return (
     <div className="c3-container">
@@ -23,6 +49,7 @@ export default function Case3() {
         <div
           className="c3-btn"
           onClick={() => {
+            window.performance.mark("c3-insert-btn-click");
             setInsertedList((prev) => {
               const v = prev.length;
               performance.mark(`c3-insert-${v}`);
@@ -33,12 +60,18 @@ export default function Case3() {
           insert
         </div>
       </div>
-      {insertedList.map((_, j) => {
-        return <Card key={`inserted-${j}`} label={`inserted-${j}`} />;
-      })}
-      {items.map((_, i) => {
-        return <Card key={`card-${i}`} label={`card-${i}`} />;
-      })}
+      <div
+        ref={scrollContainerRef}
+        className="c3-list"
+        style={{ height: "calc(100vh - 100px)", overflowY: "auto" }}
+      >
+        {insertedList.map((_, j) => {
+          return <Card key={`inserted-${j}`} label={`inserted-${j}`} />;
+        })}
+        {items.map((_, i) => {
+          return <Card key={`card-${i}`} label={`card-${i}`} />;
+        })}
+      </div>
     </div>
   );
 }
