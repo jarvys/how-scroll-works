@@ -32,7 +32,6 @@ export default function Case3() {
     function listener() {
       window.performance.mark("c3-scroll");
       console.log("c3-scroll");
-      alert("hello world");
     }
 
     scrollContainerRef.current?.addEventListener("scroll", listener);
@@ -41,7 +40,6 @@ export default function Case3() {
     };
   }, []);
 
-  eval("console.log('c3-render')");
   window.performance.mark("c3-render");
 
   return (
