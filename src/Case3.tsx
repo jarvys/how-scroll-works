@@ -40,6 +40,7 @@ export default function Case3() {
     };
   }, []);
 
+  eval("console.log('c3-render')");
   window.performance.mark("c3-render");
 
   return (
