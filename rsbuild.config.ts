@@ -3,7 +3,7 @@ import { pluginReact } from "@rsbuild/plugin-react";
 
 export default defineConfig({
   output: {
-    assetPrefix: "/jarvys/how-scroll-works/",
+    assetPrefix: "/how-scroll-works/",
   },
   plugins: [pluginReact()],
 });
