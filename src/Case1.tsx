@@ -1,4 +1,4 @@
-import "./case1.css";
+import "./Case1.css";
 
 import debugFn from "debug";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
